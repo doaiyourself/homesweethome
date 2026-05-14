@@ -86,10 +86,36 @@ docker compose up --build
 | `TELEGRAM_NOTIFY_MIN_SCORE` | 푸시할 최소 점수 (기본 70) |
 | `CRAWL_SCHEDULE_HOUR` | 매일 크롤링 시각 (기본 9) |
 
+## 크롤러 probe (Phase 1)
+
+```bash
+cd backend
+source .venv/bin/activate
+pip install -r requirements.txt
+python scripts/probe_crawler.py
+# → data/probe_result.json 생성, 첫 매물 샘플 콘솔 출력
+```
+
+환경변수로 조정 가능:
+- `PROBE_CORTAR_NO` — 다른 동을 찍어보고 싶을 때 (기본: 신도림동)
+- `PROBE_PAGES` — 가져올 페이지 수 (기본 3)
+- `LOG_LEVEL=DEBUG` — 모든 HTTP 요청 로깅
+
+**token 추출이 실패하면:** `[FAIL] token extraction failed` 메시지가 뜬다. 이 경우
+Chrome DevTools로 실제 요청을 캡처해서 (Authorization 헤더 / 요청 URL / 응답)
+공유하면 Playwright 기반으로 갈아끼울 수 있다.
+
+테스트:
+
+```bash
+cd backend
+pytest -v
+```
+
 ## 로드맵
 
 - [x] Phase 0 — 모노레포 골격
-- [ ] Phase 1 — 네이버 크롤러 프로토타입 (probe 스크립트)
+- [x] Phase 1 — 네이버 크롤러 프로토타입 (probe 스크립트)
 - [ ] Phase 2 — DB 모델 + 마이그레이션
 - [ ] Phase 3 — 점수 계산 + 일 단위 파이프라인
 - [ ] Phase 4 — FastAPI REST API
