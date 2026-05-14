@@ -1,0 +1,46 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- Node ---
+node_modules/
+.next/
+out/
+dist/
+.turbo/
+
+# --- Env ---
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# --- Data ---
+backend/data/*.db
+backend/data/*.json
+backend/data/probe_*
+!backend/data/.gitkeep
+
+# --- IDE / tooling ---
+.vscode/
+.idea/
+.claude/
+*.swp
+.DS_Store
+
+# --- Build / coverage ---
+coverage/
+.coverage
+htmlcov/
+
+# --- Logs ---
+*.log
+logs/
