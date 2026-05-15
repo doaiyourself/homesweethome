@@ -112,11 +112,28 @@ cd backend
 pytest -v
 ```
 
+## DB 마이그레이션 (Phase 2)
+
+```bash
+cd backend
+source .venv/bin/activate
+
+# 첫 마이그레이션 적용 (또는 모델 변경 후)
+alembic upgrade head
+
+# 모델을 바꾼 후 새 리비전 생성
+alembic revision --autogenerate -m "describe change"
+alembic upgrade head
+```
+
+`backend/data/app.db` 가 SQLite 파일로 만들어진다. Postgres로 가려면
+`.env`의 `DATABASE_URL` 만 `postgresql+asyncpg://...` 로 바꾸면 됨.
+
 ## 로드맵
 
 - [x] Phase 0 — 모노레포 골격
 - [x] Phase 1 — 네이버 크롤러 프로토타입 (probe 스크립트)
-- [ ] Phase 2 — DB 모델 + 마이그레이션
+- [x] Phase 2 — DB 모델 + 마이그레이션 (Article / UserAction / UserPref + 리포지토리)
 - [ ] Phase 3 — 점수 계산 + 일 단위 파이프라인
 - [ ] Phase 4 — FastAPI REST API
 - [ ] Phase 5 — 텔레그램 봇
