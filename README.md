@@ -192,6 +192,30 @@ WEB_BASE_URL=https://your-app.example.com
 봇이 설정되지 않은 상태로 두면 (`TELEGRAM_BOT_TOKEN` 비어있음) 스케줄러는
 조용히 푸시를 스킵한다 — 개발/배포 분리에 편리.
 
+## 프론트엔드 (Phase 6)
+
+```bash
+cd frontend
+npm install
+cp .env.example .env.local   # NEXT_PUBLIC_API_BASE_URL이 백엔드 가리키게
+npm run dev
+```
+
+`http://localhost:3000` 접속. 페이지:
+
+| 경로 | 설명 |
+|------|------|
+| `/` | 활성/신규/평균/마지막 크롤 통계 + 추천 6건 + 24h 신규 6건 |
+| `/articles` | 전체 리스트, 상태/거래/정렬/최소점수 필터, 페이지네이션 |
+| `/articles/[articleNo]` | 상세 (이미지, 가격/면적/층/향/확인일/중개사, 찜/숨김, 네이버 원문) |
+| `/favorites` | 찜한 매물 |
+| `/map` | Leaflet OSM 지도, 마커 클릭 → 미니카드 + 상세 링크 |
+| `/settings` | 지역/거래/예산/면적/키워드/가중치 폼 |
+
+찜/숨김 버튼은 Server Action 으로 백엔드 API 호출 후 자동 페이지 갱신.
+다크모드는 `<html class="dark">` 토글로 동작 (현재는 OS-prefer 기반 자동
+적용이 아니라 수동; 토글 UI는 추후 추가).
+
 ## 로드맵
 
 - [x] Phase 0 — 모노레포 골격
@@ -200,7 +224,7 @@ WEB_BASE_URL=https://your-app.example.com
 - [x] Phase 3 — 점수 계산 + 일 단위 파이프라인 (scorer · pipeline · scheduler)
 - [x] Phase 4 — FastAPI REST API (articles · prefs · crawl · stats)
 - [x] Phase 5 — 텔레그램 봇 (신규 매물 푸시)
-- [ ] Phase 6 — Next.js 프론트엔드
+- [x] Phase 6 — Next.js 프론트엔드 (홈/매물/상세/찜/지도/설정)
 - [ ] Phase 7 — Railway / Vercel 배포
 
 ## 라이선스
