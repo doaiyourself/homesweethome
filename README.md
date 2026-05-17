@@ -169,6 +169,29 @@ UI 로 모든 엔드포인트 확인 가능.
 CORS는 `.env`의 `FRONTEND_ORIGIN`(기본 `http://localhost:3000`)만 허용.
 `/api/crawl/trigger`는 `.env`의 `ADMIN_TOKEN`을 `X-Admin-Token` 헤더로 검증.
 
+## 텔레그램 봇 (Phase 5)
+
+매일 KST 09:00 크롤이 끝나면 신규 매물 중 점수가 `TELEGRAM_NOTIFY_MIN_SCORE`
+이상인 것만 푸시한다. 상위 5건은 카드 형태로 개별 메시지, 나머지는
+"+N건 더 있음" 요약 한 통.
+
+### 봇 셋업
+
+1. 텔레그램에서 `@BotFather` 채팅에서 `/newbot` → 안내대로 이름 입력 → 봇 토큰 받음 (`123456:ABC...`).
+2. 만든 봇을 시작 (`/start`)해서 첫 메시지 보내기. 두 사람이 받을거면 둘 다 한 번씩 보내기.
+3. 본인 chat_id 확인: 브라우저에서 `https://api.telegram.org/bot<TOKEN>/getUpdates` 열어 `message.chat.id` 복사.
+4. `.env`에 채우기:
+
+```
+TELEGRAM_BOT_TOKEN=123456:ABC...
+TELEGRAM_CHAT_IDS=11111111,22222222
+TELEGRAM_NOTIFY_MIN_SCORE=70
+WEB_BASE_URL=https://your-app.example.com
+```
+
+봇이 설정되지 않은 상태로 두면 (`TELEGRAM_BOT_TOKEN` 비어있음) 스케줄러는
+조용히 푸시를 스킵한다 — 개발/배포 분리에 편리.
+
 ## 로드맵
 
 - [x] Phase 0 — 모노레포 골격
@@ -176,7 +199,7 @@ CORS는 `.env`의 `FRONTEND_ORIGIN`(기본 `http://localhost:3000`)만 허용.
 - [x] Phase 2 — DB 모델 + 마이그레이션 (Article / UserAction / UserPref + 리포지토리)
 - [x] Phase 3 — 점수 계산 + 일 단위 파이프라인 (scorer · pipeline · scheduler)
 - [x] Phase 4 — FastAPI REST API (articles · prefs · crawl · stats)
-- [ ] Phase 5 — 텔레그램 봇
+- [x] Phase 5 — 텔레그램 봇 (신규 매물 푸시)
 - [ ] Phase 6 — Next.js 프론트엔드
 - [ ] Phase 7 — Railway / Vercel 배포
 

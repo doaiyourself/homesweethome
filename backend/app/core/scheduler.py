@@ -14,6 +14,7 @@ from apscheduler.triggers.cron import CronTrigger
 from app.core.config import get_settings
 from app.core.database import SessionLocal
 from app.services.crawl_pipeline import run_daily_crawl
+from app.services.telegram_notifier import TelegramNotifier
 
 logger = logging.getLogger(__name__)
 
@@ -21,8 +22,10 @@ _scheduler: AsyncIOScheduler | None = None
 
 
 async def daily_crawl_job() -> None:
-    """Job executed by APScheduler — opens a fresh session, runs the pipeline."""
+    """Job executed by APScheduler — opens a fresh session, runs the pipeline,
+    then pushes the new top-scoring listings to Telegram."""
     logger.info("Daily crawl job starting")
+    settings = get_settings()
     async with SessionLocal() as session:
         try:
             report = await run_daily_crawl(session)
@@ -37,7 +40,23 @@ async def daily_crawl_job() -> None:
         report.error_count,
         report.average_score,
     )
-    # Telegram push is added in Phase 5.
+
+    if not report.new_articles:
+        logger.info("No new articles; skipping Telegram push")
+        return
+
+    notifier = TelegramNotifier(
+        bot_token=settings.telegram_bot_token,
+        chat_ids=settings.telegram_chat_id_list,
+        web_base_url=settings.web_base_url,
+    )
+    push_result = await notifier.send_new_articles(
+        report.new_articles, min_score=settings.telegram_notify_min_score
+    )
+    logger.info(
+        "Telegram push: sent=%d failed=%d skipped=%d",
+        push_result.sent, push_result.failed, push_result.skipped,
+    )
 
 
 def start_scheduler() -> AsyncIOScheduler:
