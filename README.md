@@ -149,13 +149,33 @@ uvicorn app.main:app --reload
 파이프라인이 자동으로 동 단위로 확장한다. 처음 실행 시 UserPref가
 구로/양천/영등포 3개 구로 시드된다.
 
+## REST API (Phase 4)
+
+`uvicorn app.main:app --reload` 후 `http://localhost:8000/docs` 에서 Swagger
+UI 로 모든 엔드포인트 확인 가능.
+
+| 메서드 | 경로 | 설명 |
+|--------|------|------|
+| GET | `/health` | 헬스체크 |
+| GET | `/api/articles` | 매물 리스트 (status, min_score, sort, page) |
+| GET | `/api/articles/{article_no}` | 매물 상세 |
+| GET | `/api/articles/favorites` | 찜 목록 |
+| POST/DELETE | `/api/articles/{article_no}/favorite` | 찜 토글 |
+| POST/DELETE | `/api/articles/{article_no}/hide` | 숨김 토글 |
+| GET/PUT | `/api/prefs` | 사용자 설정 조회/수정 |
+| POST | `/api/crawl/trigger` | 수동 크롤 (X-Admin-Token 필수) |
+| GET | `/api/stats` | 활성 매물 수, 24h 신규, 평균 점수 |
+
+CORS는 `.env`의 `FRONTEND_ORIGIN`(기본 `http://localhost:3000`)만 허용.
+`/api/crawl/trigger`는 `.env`의 `ADMIN_TOKEN`을 `X-Admin-Token` 헤더로 검증.
+
 ## 로드맵
 
 - [x] Phase 0 — 모노레포 골격
 - [x] Phase 1 — 네이버 크롤러 프로토타입 (probe 스크립트)
 - [x] Phase 2 — DB 모델 + 마이그레이션 (Article / UserAction / UserPref + 리포지토리)
 - [x] Phase 3 — 점수 계산 + 일 단위 파이프라인 (scorer · pipeline · scheduler)
-- [ ] Phase 4 — FastAPI REST API
+- [x] Phase 4 — FastAPI REST API (articles · prefs · crawl · stats)
 - [ ] Phase 5 — 텔레그램 봇
 - [ ] Phase 6 — Next.js 프론트엔드
 - [ ] Phase 7 — Railway / Vercel 배포

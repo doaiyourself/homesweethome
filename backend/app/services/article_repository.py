@@ -106,6 +106,62 @@ async def get_article(session: AsyncSession, article_no: str) -> Article | None:
     return await session.get(Article, article_no)
 
 
+async def query_articles(
+    session: AsyncSession,
+    *,
+    status: str = "active",          # "active" | "new" | "all"
+    new_window_hours: int = 24,
+    cortar_no: str | None = None,
+    trade_types: Sequence[str] | None = None,
+    real_estate_types: Sequence[str] | None = None,
+    min_score: float | None = None,
+    exclude_article_nos: Sequence[str] | None = None,
+    include_article_nos: Sequence[str] | None = None,
+    limit: int = 50,
+    offset: int = 0,
+    sort: str = "score",             # "score" | "date" | "last_seen"
+) -> tuple[list[Article], int]:
+    """List articles for the API. Returns (rows, total_matching_count)."""
+    from datetime import timedelta
+
+    base = select(Article)
+    if status == "active":
+        base = base.where(Article.is_active.is_(True))
+    elif status == "new":
+        since = _utcnow_naive() - timedelta(hours=new_window_hours)
+        base = base.where(Article.first_seen_at >= since)
+    # "all" → no filter
+
+    if cortar_no is not None:
+        base = base.where(Article.cortar_no == cortar_no)
+    if trade_types:
+        base = base.where(Article.trade_type.in_(trade_types))
+    if real_estate_types:
+        base = base.where(Article.real_estate_type.in_(real_estate_types))
+    if min_score is not None:
+        base = base.where(Article.score >= min_score)
+    if exclude_article_nos:
+        base = base.where(Article.article_no.notin_(exclude_article_nos))
+    if include_article_nos is not None:
+        # Empty list → no results. Use a sentinel comparison.
+        base = base.where(Article.article_no.in_(include_article_nos))
+
+    # Count first (without limit/offset)
+    count_stmt = select(func.count()).select_from(base.subquery())
+    total = int((await session.execute(count_stmt)).scalar_one())
+
+    if sort == "score":
+        base = base.order_by(Article.score.desc().nullslast(), Article.last_seen_at.desc())
+    elif sort == "date":
+        base = base.order_by(Article.first_seen_at.desc())
+    else:
+        base = base.order_by(Article.last_seen_at.desc())
+
+    base = base.limit(limit).offset(offset)
+    rows = list((await session.execute(base)).scalars().all())
+    return rows, total
+
+
 async def get_active_articles(
     session: AsyncSession,
     *,

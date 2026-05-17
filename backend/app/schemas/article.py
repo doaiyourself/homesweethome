@@ -55,3 +55,12 @@ class ArticleRead(ArticleBase):
     last_seen_at: datetime
     is_active: bool
     score: float | None = None
+    is_favorited: bool = False
+    is_hidden: bool = False
+
+
+class ArticleListResponse(BaseModel):
+    items: list[ArticleRead]
+    total: int
+    page: int
+    page_size: int
