@@ -129,12 +129,32 @@ alembic upgrade head
 `backend/data/app.db` 가 SQLite 파일로 만들어진다. Postgres로 가려면
 `.env`의 `DATABASE_URL` 만 `postgresql+asyncpg://...` 로 바꾸면 됨.
 
+## 일 단위 크롤링 (Phase 3)
+
+```bash
+cd backend
+source .venv/bin/activate
+alembic upgrade head           # 첫 실행 시
+python scripts/run_crawl.py    # 한 번 수동 실행 (UserPref 자동 시드)
+```
+
+스케줄러는 FastAPI 실행 시 자동 시작:
+
+```bash
+uvicorn app.main:app --reload
+# → 매일 KST 09:00 run_daily_crawl 자동 실행 (.env의 CRAWL_SCHEDULE_HOUR 로 조정)
+```
+
+`UserPref.region_codes`에 gu-level 코드 (예: `1153000000` = 구로구)를 넣으면
+파이프라인이 자동으로 동 단위로 확장한다. 처음 실행 시 UserPref가
+구로/양천/영등포 3개 구로 시드된다.
+
 ## 로드맵
 
 - [x] Phase 0 — 모노레포 골격
 - [x] Phase 1 — 네이버 크롤러 프로토타입 (probe 스크립트)
 - [x] Phase 2 — DB 모델 + 마이그레이션 (Article / UserAction / UserPref + 리포지토리)
-- [ ] Phase 3 — 점수 계산 + 일 단위 파이프라인
+- [x] Phase 3 — 점수 계산 + 일 단위 파이프라인 (scorer · pipeline · scheduler)
 - [ ] Phase 4 — FastAPI REST API
 - [ ] Phase 5 — 텔레그램 봇
 - [ ] Phase 6 — Next.js 프론트엔드
