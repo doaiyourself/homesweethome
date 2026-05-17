@@ -6,6 +6,7 @@ import { useCallback } from "react";
 import { cn } from "@/lib/utils";
 
 const TRADE_OPTIONS = [
+  { value: "A1", label: "매매" },
   { value: "B1", label: "전세" },
   { value: "B2", label: "월세" },
 ];

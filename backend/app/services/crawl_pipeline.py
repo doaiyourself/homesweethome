@@ -33,7 +33,7 @@ from app.services.user_pref_repository import get_or_create_pref
 
 logger = logging.getLogger(__name__)
 
-MAX_PAGES_PER_REGION = 50  # safety cap
+MAX_PAGES_PER_REGION = 200  # safety cap (some dongs in 구로/영등포 have 1k+ listings)
 
 
 @dataclass
@@ -88,10 +88,18 @@ async def run_daily_crawl(
         len(dong_codes), len(pref.region_codes),
     )
 
+    trade_types = pref.trade_types or None
+    real_estate_types = pref.real_estate_types or None
+
     for cortar_no in dong_codes:
         region_stats = {"new": 0, "updated": 0, "errors": 0}
         try:
-            articles = await _crawl_region(client, cortar_no)
+            articles = await _crawl_region(
+                client,
+                cortar_no,
+                trade_types=trade_types,
+                real_estate_types=real_estate_types,
+            )
         except NaverLandError as e:
             logger.exception("Region %s failed: %s", cortar_no, e)
             region_stats["errors"] += 1
@@ -199,12 +207,21 @@ def _extract_region_codes(payload: dict) -> list[str]:
 
 
 async def _crawl_region(
-    client: NaverLandClient, cortar_no: str
+    client: NaverLandClient,
+    cortar_no: str,
+    *,
+    trade_types: list[str] | None = None,
+    real_estate_types: list[str] | None = None,
 ) -> list[dict]:
     """Fetch every page for `cortar_no` (until isMoreData=False)."""
     all_articles: list[dict] = []
     for page in range(1, MAX_PAGES_PER_REGION + 1):
-        payload = client.fetch_articles(cortar_no, page=page)
+        payload = client.fetch_articles(
+            cortar_no,
+            page=page,
+            trade_types=trade_types,
+            real_estate_types=real_estate_types,
+        )
         normalized = normalize_article_list(payload, cortar_no=cortar_no)
         all_articles.extend(normalized)
         if not payload.get("isMoreData", False):
